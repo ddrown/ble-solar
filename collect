@@ -1,0 +1,36 @@
+#!venv/bin/python
+
+import gatherbt
+import decode
+import argparse
+from influxdb import InfluxDBClient
+from datetime import datetime, timezone
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+      prog="collect",
+      description="collect solar stats via ble"
+      )
+    parser.add_argument("sshHost", help="ssh hostname")
+    parser.add_argument("bleMac", help="bluetooth mac address")
+    args = parser.parse_args()
+
+    decoders = [
+      decode.group1decode,
+      decode.group2decode,
+      decode.group3decode,
+      decode.group4decode,
+    ]
+
+    client = InfluxDBClient(host='localhost', port=8086)
+    groups = gatherbt.gather(args.sshHost, args.bleMac)
+    data = {}
+    for i in range(0, len(decoders)):
+        data = data | decoders[i](groups[i])
+
+    client.switch_database("solar-charger")
+    client.write_points([{
+        "measurement": "charger",
+        "time": datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat(),
+        "fields": data
+    }])
