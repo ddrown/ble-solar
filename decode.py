@@ -1,3 +1,7 @@
+# thirty-two bits from four 8 bit values
+def thirtytwo(values, start_offset):
+    return values[start_offset] << 24 | values[start_offset+1] << 16 | values[start_offset+2] << 8 | values[start_offset+3] 
+
 # sixteen bits from two 8 bit values
 def sixteen(values, start_offset):
     return values[start_offset] << 8 | values[start_offset+1]
@@ -13,22 +17,40 @@ def sixteen_100(values, start_offset):
 # 1 = 010301010013543b
 def group1decode(bytes):
     values = base_decode(bytes)
+    flags = sixteen(values, 27)
     decoded = {
         "unknown_1_1": sixteen(values, 3),
         "battery_v": sixteen_10(values, 5),
         "battery_a": sixteen_100(values, 7),
-        "unknown_1_2": sixteen(values, 9),
+        "solar_w": sixteen(values, 9),
         "temp_controller": values[11],
         "temp_battery": values[12],
-        "unknown_1_3": sixteen(values, 13),
-        "unknown_1_4": sixteen(values, 15),
-        "unknown_1_5": sixteen(values, 17),
+        "dcload_v": sixteen_10(values, 13),
+        "dcload_w": sixteen_10(values, 15),
+        "dcload_a": sixteen_10(values, 17),
         "solar_v": sixteen_10(values, 19),
-        "max_charge_w": sixteen(values, 21)
+        "max_charge_w": sixteen(values, 21),
+        "charge_today_wh": sixteen(values, 23),
+        "dcload_today_wh": sixteen(values, 25),
+        "mppt_mode": 1 if (flags & 0x2) else 0,
+        "float_mode": 1 if (flags & 0x4) else 0, # or is this "max volt"?
+        "maxv_mode": 1 if (flags & 0x1) else 0, # or is this "float mode"?
+        "dcload_mode": 1 if (flags & 0x8000) else 0,
+        "unknown_1_27": flags,
+        "unknown_1_29": sixteen(values, 29),
+        "unknown_1_31": sixteen(values, 31),
+        "charge_total_wh": thirtytwo(values, 33),
+        "dcload_total_wh": thirtytwo(values, 37),
     }
-    for i in range(23, 40, 2):
-        decoded[f"unknown_1_{i}"] = sixteen(values, i)
     return decoded
+
+# flags
+# start = 0
+# 2023-07-30 12:52:46 = 2     (solar charge on, mppt?)
+# 2023-07-30 14:10:16 = 5     (solar charge float?)
+# 2023-07-30 14:17:30 = 32773 (dc load on)
+# 2023-07-30 17:14:12 = 32768
+# 2023-07-31 08:30:46 = 0     (dc load off)
 
 # 2 = 010302010011e47e15c0
 def group2decode(bytes):
