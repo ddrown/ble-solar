@@ -27,3 +27,25 @@ Most values seem to be two bytes long
 An example Grafana dashboard, solar panels were plugged in around 12:50 and batteries accepted about 18AH before they hit the full setting of 14V:
 
 ![graphs from Grafana](https://github.com/ddrown/ble-solar/blob/main/example-graphs.png?raw=true)
+
+To figure out:
+* DC load stats
+* if I connect via app and this program at the same time, what happens?
+
+```
+[01:B6:EC:xx:xx:xx][LE]> connect
+connect
+connect
+Attempting to connect to 01:B6:EC:xx:xx:xx
+Error: connect to 01:B6:EC:xx:xx:xx: Resource busy (16)
+[01:B6:EC:xx:xx:xx][LE]> Timeout exceeded.
+...
+# hcitool lescan
+Set scan parameters failed: I/O error
+# hciconfig hci0 down
+# hciconfig hci0 up
+# hcitool lescan
+LE Scan ...
+01:B6:EC:xx:xx:xx (unknown)
+01:B6:EC:xx:xx:xx PVChargePro
+```
