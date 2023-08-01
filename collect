@@ -24,6 +24,8 @@ if __name__ == "__main__":
 
     client = InfluxDBClient(host='localhost', port=8086)
     groups = gatherbt.gather(args.sshHost, args.bleMac)
+    if groups == None:
+        exit(1)
     data = {}
     for i in range(0, len(decoders)):
         data = data | decoders[i](groups[i])
