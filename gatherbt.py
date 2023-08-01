@@ -17,7 +17,7 @@ def cmd(ssh, cmd, lines):
 
 def gather(host, mac):
     groups = []
-    ssh = pexpect.spawn("ssh", [host,"gatttool","--device",mac,"--interactive"], timeout=2, logfile=sys.stdout.buffer)
+    ssh = pexpect.spawn("ssh", [host,"gatttool","--device",mac,"--interactive"], timeout=4, logfile=sys.stdout.buffer)
     ssh.expect("> ")
     try:
         ssh.sendline("connect")
@@ -48,5 +48,7 @@ def gather(host, mac):
     except Exception as e:
         print(e)
         ssh.sendline("quit")
+        ssh.expect(pexpect.EOF)
+        return None
 
     return groups
